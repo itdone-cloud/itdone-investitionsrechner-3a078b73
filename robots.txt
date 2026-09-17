@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /impressum.html
 Disallow: /datenschutz.html
+Sitemap: https://app-investitionsrechner-3a078b73.itdone.cloud/sitemap.xml
