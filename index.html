@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<base href="/">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Investitionsrechner – Amortisation, Cashflow &amp; Steuern berechnen</title>
+<meta name="description" content="Anfangsinvestition, Rendite und Zinssatz eingeben – der Rechner ermittelt Amortisationsdauer, Cashflow, Steuereffekte sowie Monats- und Jahresübersicht. Direkt nutzbar, ohne Anmeldung.">
+<meta name="theme-color" content="#2F5233">
+<link rel="icon" href="/assets/icon.png">
+<link rel="apple-touch-icon" href="/assets/icon.png">
+<link rel="manifest" href="/manifest.json">
+<link rel="stylesheet" href="https://cdn.itdone.cloud/fonts/spectral/index.css">
+<link rel="stylesheet" href="https://cdn.itdone.cloud/fonts/ibm-plex-mono/index.css">
+<link rel="stylesheet" href="https://cdn.itdone.cloud/fonts/source-serif-4/index.css">
+<link rel="stylesheet" href="/css/style.css">
+<meta property="og:title" content="Investitionsrechner – Amortisation, Cashflow &amp; Steuern">
+<meta property="og:description" content="Anfangsinvestition, Rendite und Zinssatz eingeben – Amortisationsdauer, Cashflow und Steuereffekte sofort berechnen.">
+<meta property="og:type" content="website">
+</head>
+<body>
+<header class="kopf">
+  <a href="/" class="wortmarke">Investitionsrechner</a>
+  <details class="erklaerung" id="erklaerung">
+    <summary>Wie das funktioniert</summary>
+    <p>Sie geben Anfangsinvestition, erwartete jährliche Rendite und einen Kalkulationszinssatz ein – auf Wunsch mit einer live berechneten Systemempfehlung als Ausgangspunkt. Daraus ermittelt der Rechner die dynamische (abgezinste) Amortisationsdauer, den Cashflow über die Laufzeit, die steuerliche Wirkung sowie eine Monats- und Jahresübersicht. Das Modell rechnet mit konstanten jährlichen Raten – ein vereinfachtes, aber nachvollziehbares Verfahren nach anerkannter Investitionsrechnung (Kapitalwert- und Amortisationsmethode).</p>
+  </details>
+</header>
+
+<main>
+  <form id="rechner-form" novalidate>
+    <div class="ledger-block pflicht">
+      <div class="ledger-zeile">
+        <label for="investition">Anfangsinvestition</label>
+        <div class="ledger-eingabe">
+          <input type="number" id="investition" name="investition" min="0" step="100" placeholder="50000" inputmode="decimal" required>
+          <span class="einheit">€</span>
+        </div>
+      </div>
+      <div class="ledger-zeile">
+        <label for="rendite">Erwartete jährliche Rendite</label>
+        <div class="ledger-eingabe">
+          <input type="number" id="rendite" name="rendite" min="0" step="0.1" placeholder="12" inputmode="decimal" required>
+          <span class="einheit">%</span>
+        </div>
+      </div>
+      <div class="ledger-zeile zinszeile">
+        <label for="zinssatz">Kalkulationszinssatz</label>
+        <div class="zins-eingabe-wrap">
+          <div class="ledger-eingabe">
+            <input type="number" id="zinssatz" name="zinssatz" min="0" step="0.01" placeholder="4,40" inputmode="decimal" required>
+            <span class="einheit">%</span>
+          </div>
+          <button type="button" id="empfehlung-btn" class="empfehlung-btn">Systemempfehlung übernehmen</button>
+        </div>
+      </div>
+      <p id="empfehlung-hinweis" class="empfehlung-hinweis" role="status" aria-live="polite"></p>
+    </div>
+
+    <details class="optional-block">
+      <summary>Optional — für mehr Genauigkeit</summary>
+      <div class="ledger-zeile">
+        <label for="laufzeit">Laufzeit</label>
+        <div class="ledger-eingabe">
+          <input type="number" id="laufzeit" name="laufzeit" min="1" max="30" step="1" value="10">
+          <span class="einheit">Jahre</span>
+        </div>
+      </div>
+      <div class="ledger-zeile">
+        <label for="betriebskosten">Jährliche Betriebskosten</label>
+        <div class="ledger-eingabe">
+          <input type="number" id="betriebskosten" name="betriebskosten" min="0" step="50" value="0">
+          <span class="einheit">€</span>
+        </div>
+      </div>
+      <div class="ledger-zeile">
+        <label for="steuersatz">Steuersatz</label>
+        <div class="ledger-eingabe">
+          <input type="number" id="steuersatz" name="steuersatz" min="0" max="60" step="0.1" value="25">
+          <span class="einheit">%</span>
+        </div>
+      </div>
+    </details>
+
+    <button type="submit" class="berechnen-btn">Berechnen</button>
+    <p class="fehler" id="form-fehler" role="alert"></p>
+  </form>
+
+  <div class="ergebnis-wrapper" id="ergebnis-wrapper">
+    <div class="ergebnis-inner">
+      <section class="ergebnis" id="ergebnis" aria-live="polite">
+        <div class="kennzahlen">
+          <div class="kennzahl">
+            <p class="zahl"><span id="kz-amortisation">–</span></p>
+            <p class="bildunterschrift">Amortisationsdauer, dynamisch abgezinst</p>
+          </div>
+          <div class="kennzahl">
+            <p class="zahl"><span id="kz-cashflow">–</span></p>
+            <p class="bildunterschrift">Cashflow gesamt über die Laufzeit</p>
+          </div>
+        </div>
+
+        <p class="steuer-zeile" id="steuer-zeile"></p>
+
+        <h2>Monatliche Übersicht — erste 12 Monate</h2>
+        <div class="tabelle-scroll">
+          <table class="monatstabelle">
+            <thead><tr><th>Monat</th><th>Cashflow</th><th>Kumuliert</th><th class="chart-col" aria-label="Fortschritt zur Amortisation"></th></tr></thead>
+            <tbody id="monatstabelle-body"></tbody>
+          </table>
+        </div>
+
+        <h2>Jahresübersicht</h2>
+        <div class="tabelle-scroll">
+          <table class="jahrestabelle">
+            <thead><tr><th>Jahr</th><th>Bruttoertrag</th><th>Betriebskosten</th><th>Steuer</th><th>Cashflow</th><th>Kumuliert</th><th>Abgezinst kum.</th></tr></thead>
+            <tbody id="jahrestabelle-body"></tbody>
+            <tfoot id="jahrestabelle-foot"></tfoot>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer class="fuss">
+  <p class="kontakt">Fragen zum Rechner: <a href="mailto:[bitte ergänzen: E-Mail-Adresse]?subject=Frage%20zum%20Investitionsrechner">[bitte ergänzen: E-Mail-Adresse]</a></p>
+  <p class="rechtlinks"><a href="/impressum">Impressum</a> · <a href="/datenschutz">Datenschutz</a></p>
+  <p class="itdone-notice">Erstellt mit <a href="https://itdone.cloud">itdone.cloud</a> · Impressum und Datenschutz sind noch nicht ausgefüllt.</p>
+</footer>
+
+<script src="/js/main.js"></script>
+<script>if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');</script>
+</body>
+</html>
